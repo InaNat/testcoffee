@@ -17,12 +17,26 @@ import yolo_networking as yn
 import argparse
 
 
-
 def main(use_remote_computer):
     print('cv2.__version__ =', cv2.__version__)
     print('cv2.__path__ =', cv2.__path__)
     print('sys.version =', sys.version)
     
+    
+    parser = argparse.ArgumentParser(
+    prog='Receive and Process D405 Images with YOLOv8',
+    description=(
+        'Receives and processes D405 images for visual servoing '
+        'with the Stretch mobile manipulator from Hello Robot.'
+    ))
+    
+    parser.add_argument(
+    '-c', '--class-name',
+    type=str,
+    required=True,
+    help='The object class name to detect (e.g. "person", "cup", etc.)'
+    )
+
     yolo_context = zmq.Context()
     yolo_socket = yolo_context.socket(zmq.PUB)
     if use_remote_computer:
@@ -48,7 +62,7 @@ def main(use_remote_computer):
         
     d405_socket.connect(d405_address)
 
-    yolo_servo_perception = yp.YoloServoPerception(model_name=model_name)
+    yolo_servo_perception = yp.YoloServoPerception(model_name=model_name, class_name=class_name)
 
     loop_timer = lt.LoopTimer()
     

@@ -24,7 +24,7 @@ def draw_text(image, origin, text_lines):
 
 
 class YoloServoPerception():
-    def __init__(self, model_name=None):
+    def __init__(self, model_name=None, class_name=None):
         self.camera_info = None
         self.depth_scale = None
         if model_name is not None:
@@ -80,7 +80,7 @@ class YoloServoPerception():
                 masks = yolo_results.masks.xy
             for i, box in enumerate(boxes):
                 class_name = names[box.cls[0]]
-                if class_name in ['banana']:
+                if class_name in [class_name]:
 
                     box_min_x, box_min_y, box_max_x, box_max_y = box.xyxy[0]
                     box_width_x = box_max_x - box_min_x
