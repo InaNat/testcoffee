@@ -33,6 +33,8 @@ def autoAdjustments_with_convertScaleAbs(img):
     
 def main(use_remote_computer, exposure):
     try: 
+        image_count = 0
+        saved_image = False
         print('cv2.__version__ =', cv2.__version__)
         print('cv2.__path__ =', cv2.__path__)
         print('sys.version =', sys.version)
@@ -61,8 +63,6 @@ def main(use_remote_computer, exposure):
         
         start_time = time.time()
         iterations = 0
-        image_count = 0
-        saved_image = False
         while True:
             loop_timer.start_of_iteration()
 
@@ -72,8 +72,6 @@ def main(use_remote_computer, exposure):
 
             if (not depth_frame) or (not color_frame):
                 continue
-
-            image_count += 1
 
             if first_frame:
                 depth_scale = dh.get_depth_scale(profile)
@@ -99,8 +97,9 @@ def main(use_remote_computer, exposure):
             depth_image = np.asanyarray(depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
 
+            image_count += 1
             if image_count == 10 and not saved_image:
-                save_path = "/tmp/d405_image_10.png"
+                save_path = "/home/cs225a1/ina/8VC-Hackathon/d405_image_10.png"
                 cv2.imwrite(save_path, color_image)
                 print(f"Saved 10th color image to {save_path}")
                 saved_image = True
@@ -144,3 +143,4 @@ if __name__ == '__main__':
         raise argparse.ArgumentTypeError(f'The provided exposure setting, {exposure}, is not a valide keyword, {dh.exposure_keywords}, or is outside of the allowed numeric range, {dh.exposure_range}.')    
             
     main(use_remote_computer, exposure)
+    
