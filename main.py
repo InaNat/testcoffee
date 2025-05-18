@@ -1,69 +1,61 @@
 import subprocess
-import signal
-import os
-import time
 import platform
+import time
 from send_req_llama import LlamaPrompt
 
-processes = []
-
 def run_in_new_terminal(cmd, title=None):
-    """Run a command in a new terminal window."""
+    """Run a command in its own terminal window."""
     system = platform.system()
     if system == "Linux":
         args = ["gnome-terminal"]
-        if title: args += ["--title", title]
-        args += ["--", "bash", "-c", f"{cmd}; echo 'Command completed, press Enter to close'; read"]
-        p = subprocess.Popen(args)
-    # Handle other platforms if needed
-    processes.append(p)
-    return p
+        if title:
+            args += ["--title", title]
+        # the `read` at the end keeps the terminal open so you can inspect output
+        args += ["--", "bash", "-c", f"{cmd}; echo 'Done, press Enter to close'; read"]
+        return subprocess.Popen(args)
+    else:
+        # fall back to simple background process
+        return subprocess.Popen(cmd, shell=True)
 
-def run_command(cmd):
-    """Run command directly and return a process that can be waited on."""
-    p = subprocess.Popen(cmd, shell=True)
-    processes.append(p)
-    return p
-
-def shutdown(signum, frame):
-    """Terminate all child processes."""
-    print(f"↪ got signal {signum}, terminating children…")
-    for p in processes:
-        p.terminate()
-
-# Register signal handler
-signal.signal(signal.SIGUSR1, shutdown)
+def kill_process(proc):
+    try:
+        proc.terminate()
+    except Exception:
+        pass
+    # optionally: proc.kill()
 
 if __name__ == "__main__":
-    # TODO: change to the list of objects
-    list_of_objects = ["orange", "apple", "sports ball", "cup"]  
-    
-    p_img = run_command(f"python3 send_d405_images.py")
-    
-    llama = LlamaPrompt(image_path="/home/cs225a1/ina/8VC-Hackathon/d405_image_10.png")  
+    # your list of object names
+    list_of_objects = ["orange", "apple", "sports ball", "cup"]
+
+    # fire off your image‐sending script once
+    p_img = run_in_new_terminal("python3 send_d405_images.py", title="send_d405_images")
+
+    # get your (object, bag) pairs from llama
+    llama = LlamaPrompt(image_path="/home/cs225a1/ina/8VC-Hackathon/d405_image_10.png")
     result = llama.prompt_llama(list_of_objects)
-    print(result)
-    
+    print("LLM result:", result)
 
-    # Process each object
     for object_name, bag_name in result:
-        p1 = run_command(f"python3 yolo_servo_perception.py -c {object_name}")
-        
-        if bag_name == "food":
-            p2 = run_command("python3 visual_servoing_demo.py -A")
-        elif bag_name == "non-food":
-            p2 = run_command("python3 visual_servoing_demo.py -B")
-            
-        
-        # Wait for both processes to complete before moving to the next object
-        print(f"Processing object: {object_name}...")
-        p1.wait()
-        p2.wait()
-        print(f"Completed processing: {object_name}")
+        # build the two commands
+        cmd1 = f"python3 yolo_servo_perception.py -c {object_name}"
+        cmd2 = "python3 visual_servoing_demo.py -A" if bag_name == "food" else "python3 visual_servoing_demo.py -B"
 
-    try:
-        # Keep the main process alive until interrupted
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        shutdown(None, None)
+        # launch each in its own terminal
+        p1 = run_in_new_terminal(cmd1, title=f"{object_name}-yolo")
+        p2 = run_in_new_terminal(cmd2, title=f"{object_name}-servo")
+
+        print(f"→ Launched p1={p1.pid}, p2={p2.pid} for '{object_name}'")
+
+        # **only** wait for p2
+        p2.wait()
+        print(f"← p2 ({p2.pid}) exited; killing p1 ({p1.pid})…")
+
+        # now kill p1
+        kill_process(p1)
+        p1.wait()
+        print(f"✔ Finished processing '{object_name}'\n")
+
+    # when you're all done you can optionally kill p_img too
+    kill_process(p_img)
+    print("All done.")
