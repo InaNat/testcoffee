@@ -590,11 +590,11 @@ def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False
                     # Insert drop-off logic if option_a or option_b is set
                     if option_a or option_b:
                         direction = 1.0 if option_a else -1.0
-                        robot.base.translate_by(direction * 0.5)
+                        robot.base.translate_by(direction * 0.2)
                         robot.push_command()
                         robot.wait_command()
 
-                        robot.lift.move_to(0.5)
+                        robot.lift.move_to(0.7)
                         robot.push_command()
                         robot.wait_command()
 
