@@ -2,20 +2,28 @@ import subprocess
 import platform
 import time
 from send_req_llama import LlamaPrompt
+import os 
+
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
 def run_in_new_terminal(cmd, title=None):
-    """Run a command in its own terminal window."""
-    system = platform.system()
-    if system == "Linux":
+    """
+    If $DISPLAY is available, pop up a gnome-terminal.
+    Otherwise, run in the background, logging to logs/{title}.log.
+    """
+    if os.environ.get("DISPLAY"):
+        # your existing gnome-terminal code...
         args = ["gnome-terminal"]
         if title:
             args += ["--title", title]
-        # the `read` at the end keeps the terminal open so you can inspect output
-        args += ["--", "bash", "-c", f"{cmd}; echo 'Done, press Enter to close'; read"]
+        args += ["--", "bash", "-c", f"{cmd}; echo 'Done. Press Enter to close'; read"]
         return subprocess.Popen(args)
     else:
-        # fall back to simple background process
-        return subprocess.Popen(cmd, shell=True)
+        logfile = os.path.join(LOG_DIR, f"{title or 'proc'}.log")
+        bg_cmd = f"{cmd} > {logfile} 2>&1"
+        print(f"[no-display] launching `{bg_cmd}` → {logfile}")
+        return subprocess.Popen(bg_cmd, shell=True)
 
 def kill_process(proc):
     try:
