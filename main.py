@@ -39,7 +39,7 @@ if __name__ == "__main__":
     list_of_objects = ["banana", "apple", "can", "cup", "orange", "bottle"]  
     
     # TODO: change to the image path
-    llama = LlamaPrompt(image_path="image.png")  
+    llama = LlamaPrompt(image_path="/home/cs225a1/ina/8VC-Hackathon/d405_image_10.png")  
     result = llama.prompt_llama(list_of_objects)
     print(result)
     
