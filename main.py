@@ -46,8 +46,8 @@ if __name__ == "__main__":
 
     for object_name, bag_name in result:
         # build the two commands
-        cmd1 = f"python3 yolo_servo_perception.py -c {object_name}"
-        cmd2 = "python3 visual_servoing_demo.py -A" if bag_name == "food" else "python3 visual_servoing_demo.py -B"
+        cmd1 = f"xvfb-run -a python3 yolo_servo_perception.py -c {object_name}"
+        cmd2 = "python3 visual_servoing_demo.py -y -A" if bag_name == "food" else "python3 visual_servoing_demo.py -y -B"
 
         # launch each in its own terminal
         p1 = run_in_new_terminal(cmd1, title=f"{object_name}-yolo")
