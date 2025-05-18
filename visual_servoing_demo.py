@@ -590,7 +590,7 @@ def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False
                     # Insert drop-off logic if option_a or option_b is set
                     if option_a or option_b:
                         direction = 1.0 if option_a else -1.0
-                        robot.base.translate_by(direction * 0.2)
+                        robot.base.translate_by(direction * 0.5)
                         robot.push_command()
                         robot.wait_command()
 
@@ -609,6 +609,10 @@ def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False
                         robot.wait_command()
 
                         recenter_robot(robot)
+                        # Move the base back to the original location after drop-off
+                        robot.base.translate_by(-direction * 0.5)
+                        robot.push_command()
+                        robot.wait_command()
                         controller.stop()
                         robot.stop()
                         if not use_yolo:
