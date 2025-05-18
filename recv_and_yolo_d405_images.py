@@ -21,21 +21,7 @@ def main(use_remote_computer):
     print('cv2.__version__ =', cv2.__version__)
     print('cv2.__path__ =', cv2.__path__)
     print('sys.version =', sys.version)
-    
-    
-    parser = argparse.ArgumentParser(
-    prog='Receive and Process D405 Images with YOLOv8',
-    description=(
-        'Receives and processes D405 images for visual servoing '
-        'with the Stretch mobile manipulator from Hello Robot.'
-    ))
-    
-    parser.add_argument(
-    '-c', '--class-name',
-    type=str,
-    required=True,
-    help='The object class name to detect (e.g. "person", "cup", etc.)'
-    )
+
 
     yolo_context = zmq.Context()
     yolo_socket = yolo_context.socket(zmq.PUB)
@@ -115,7 +101,13 @@ if __name__ == '__main__':
         description='Receives and processes D405 images for visual servoing with the Stretch mobile manipulator from Hello Robot.'
     )
     parser.add_argument('-r', '--remote', action='store_true', help = 'Use this argument when running the code on a remote computer. By default, the code assumes that it is running on a Stretch robot. Prior to using this option, configure the network with the file yolo_networking.py on the robot and the remote computer.') 
-
+    
+    parser.add_argument(
+    '-c', '--class-name',
+    type=str,
+    required=True,
+    help='The object class name to detect (e.g. "person", "cup", etc.)'
+    )
     
     args = parser.parse_args()
     use_remote_computer =args.remote
