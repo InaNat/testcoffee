@@ -1,9 +1,4 @@
 import d405_helpers as dh
-import signal
-import os
-def shutdown(signum, frame):
-    print("Shutting down after drop-off...")
-    exit(0)
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -323,9 +318,8 @@ def recenter_robot(robot):
     robot.wait_command()
         
 
-def main(use_yolo, use_remote_computer, exposure):
+def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False):
     try:
-        signal.signal(signal.SIGUSR1, shutdown)
         
         robot = rb.Robot()
         robot.startup()
@@ -593,9 +587,34 @@ def main(use_yolo, use_remote_computer, exposure):
                     robot.push_command()
 
                 if (waggle_count > 16) or (celebrate_state_count > 100):
+                    # Insert drop-off logic if option_a or option_b is set
+                    if option_a or option_b:
+                        direction = 1.0 if option_a else -1.0
+                        robot.base.translate_by(direction * 0.5)
+                        robot.push_command()
+                        robot.wait_command()
+
+                        robot.lift.move_to(0.5)
+                        robot.push_command()
+                        robot.wait_command()
+
+                        robot.arm.move_to(0.5)
+                        robot.push_command()
+                        robot.wait_command()
+
+                        robot.end_of_arm.get_joint('stretch_gripper').move_to(max_joint_state['gripper_pos'])
+                        robot.push_command()
+                        robot.wait_command()
+
+                        recenter_robot(robot)
+                        controller.stop()
+                        robot.stop()
+                        if not use_yolo:
+                            pipeline.stop()
+                        return
                     cmd = zero_vel.copy()
-                    recenter_robot(robot)
-                    os.kill(os.getpid(), signal.SIGUSR1)
+                    behavior = 'reach'
+                    pre_reach = True
 
                 if not grasping_the_target:
                     cmd = zero_vel.copy()
@@ -780,7 +799,6 @@ def main(use_yolo, use_remote_computer, exposure):
 
 if __name__ == '__main__':
 
-    
     parser = argparse.ArgumentParser(
         prog='Stretch 3 Visual Servoing Demo',
         description='This application provides a demonstration of interactive grasping using visual servoing and the gripper-mounted D405.',
@@ -790,15 +808,18 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--remote', action='store_true', help = 'Use this argument when allowing a remote computer to send task-relevant information for visual servoing, such as 3D positions for the fingertips and target objects. Prior to using this option, configure the network with the file yolo_networking.py.')
 
     parser.add_argument('-e', '--exposure', action='store', type=str, default='low', help=f'Set the D405 exposure to {dh.exposure_keywords} or an integer in the range {dh.exposure_range}') 
-            
-    
+    parser.add_argument('-A', action='store_true', help='Drop-off Option A: Move forward 0.5m')
+    parser.add_argument('-B', action='store_true', help='Drop-off Option B: Move backward 0.5m')
+
     args = parser.parse_args()
     use_yolo = args.yolo
     use_remote_computer = args.remote
 
     exposure = args.exposure
+    option_a = args.A
+    option_b = args.B
 
     if not dh.exposure_argument_is_valid(exposure):
         raise argparse.ArgumentTypeError(f'The provided exposure setting, {exposure}, is not a valide keyword, {dh.exposure_keywords}, or is outside of the allowed numeric range, {dh.exposure_range}.')    
     
-    main(use_yolo, use_remote_computer, exposure)
+    main(use_yolo, use_remote_computer, exposure, option_a, option_b)
