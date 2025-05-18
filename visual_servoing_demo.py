@@ -602,7 +602,8 @@ def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False
                         robot.push_command()
                         robot.wait_command()
 
-                        robot.end_of_arm.get_joint('stretch_gripper').move_to(joint_state_center['gripper_pos'])
+                        # Use a fixed hard-coded value known to fully open the gripper
+                        robot.end_of_arm.get_joint('stretch_gripper').move_to(11.5)
                         robot.push_command()
                         robot.wait_command()
 
