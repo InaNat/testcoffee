@@ -17,7 +17,7 @@ import yolo_networking as yn
 import argparse
 
 
-def main(use_remote_computer):
+def main(use_remote_computer, use_class_name):
     print('cv2.__version__ =', cv2.__version__)
     print('cv2.__path__ =', cv2.__path__)
     print('sys.version =', sys.version)
@@ -48,7 +48,7 @@ def main(use_remote_computer):
         
     d405_socket.connect(d405_address)
 
-    yolo_servo_perception = yp.YoloServoPerception(model_name=model_name, class_name=class_name)
+    yolo_servo_perception = yp.YoloServoPerception(model_name=model_name, class_name=use_class_name)
 
     loop_timer = lt.LoopTimer()
     
@@ -111,7 +111,8 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     use_remote_computer =args.remote
-    main(use_remote_computer)
+    use_class_name = args.class_name
+    main(use_remote_computer, use_class_name)
     
 
     
