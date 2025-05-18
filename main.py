@@ -47,12 +47,12 @@ if __name__ == "__main__":
     for object_name, bag_name in result:
         # Start the appropriate visual servoing demo based on bag classification
         if bag_name == "food":
-            p1 = run_command("python visual_servoing_demo.py -A")
+            p1 = run_command("python3 visual_servoing_demo.py -A")
         elif bag_name == "non-food":
-            p1 = run_command("python visual_servoing_demo.py -B")
+            p1 = run_command("python3 visual_servoing_demo.py -B")
             
         # Start the perception script for the specific object
-        p2 = run_command(f"python yolo_servo_perception.py -c {object_name}")
+        p2 = run_command(f"python3 yolo_servo_perception.py -c {object_name}")
         
         # Wait for both processes to complete before moving to the next object
         print(f"Processing object: {object_name}...")
