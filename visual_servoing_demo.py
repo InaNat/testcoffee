@@ -1,4 +1,9 @@
 import d405_helpers as dh
+import signal
+import os
+def shutdown(signum, frame):
+    print("Shutting down after drop-off...")
+    exit(0)
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -320,6 +325,7 @@ def recenter_robot(robot):
 
 def main(use_yolo, use_remote_computer, exposure):
     try:
+        signal.signal(signal.SIGUSR1, shutdown)
         
         robot = rb.Robot()
         robot.startup()
@@ -588,8 +594,8 @@ def main(use_yolo, use_remote_computer, exposure):
 
                 if (waggle_count > 16) or (celebrate_state_count > 100):
                     cmd = zero_vel.copy()
-                    behavior = 'reach'
-                    pre_reach = True
+                    recenter_robot(robot)
+                    os.kill(os.getpid(), signal.SIGUSR1)
 
                 if not grasping_the_target:
                     cmd = zero_vel.copy()
