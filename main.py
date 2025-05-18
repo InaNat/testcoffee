@@ -36,7 +36,7 @@ signal.signal(signal.SIGUSR1, shutdown)
 
 if __name__ == "__main__":
     # TODO: change to the list of objects
-    list_of_objects = ["banana", "apple", "can", "cup", "orange", "bottle"]  
+    list_of_objects = ["orange", "apple", "sports ball", "cup"]  
     
     # TODO: change to the image path
     llama = LlamaPrompt(image_path="/home/cs225a1/ina/8VC-Hackathon/d405_image_10.png")  
