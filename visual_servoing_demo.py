@@ -551,16 +551,16 @@ def main(use_yolo, use_remote_computer, exposure):
                     celebrate_state_count = 0
                 prev_behavior = behavior
 
-                # Drop-off logic: recenter, extend, tilt down, wait, tilt up, recenter
+                # Drop-off logic: recenter, extend, roll down, wait, roll up, recenter
                 recenter_robot(robot)
                 robot.arm.move_to(0.4)
                 robot.push_command()
                 robot.wait_command()
-                robot.end_of_arm.get_joint('wrist_pitch').move_to(-1.05)
+                robot.end_of_arm.get_joint('wrist_roll').move_to(-1.05)
                 robot.push_command()
                 robot.wait_command()
                 time.sleep(5)
-                robot.end_of_arm.get_joint('wrist_pitch').move_to(joint_state_center['wrist_pitch_pos'])
+                robot.end_of_arm.get_joint('wrist_roll').move_to(joint_state_center['wrist_roll_pos'])
                 robot.push_command()
                 robot.wait_command()
                 recenter_robot(robot)
