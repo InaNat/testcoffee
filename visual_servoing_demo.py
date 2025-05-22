@@ -318,7 +318,7 @@ def recenter_robot(robot):
     robot.wait_command()
         
 
-def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False):
+def main(use_yolo, use_remote_computer, exposure):
     try:
         
         robot = rb.Robot()
@@ -549,78 +549,25 @@ def main(use_yolo, use_remote_computer, exposure, option_a=False, option_b=False
 
                 if prev_behavior != 'celebrate':
                     celebrate_state_count = 0
-                    pitch_ready = False
-                    yaw_ready = False
-                    ready_to_waggle = False
-                    waggle_count = 0
-
                 prev_behavior = behavior
 
-                with controller.lock:
-                    pitch = joint_state['wrist_pitch_pos']
-                    if abs(pitch - 0.1) <= 0.1:
-                        pitch_ready = True
+                # Drop-off logic: recenter, extend, tilt down, wait, tilt up, recenter
+                recenter_robot(robot)
+                robot.arm.move_to(0.4)
+                robot.push_command()
+                robot.wait_command()
+                robot.end_of_arm.get_joint('wrist_pitch').move_to(-1.05)
+                robot.push_command()
+                robot.wait_command()
+                time.sleep(5)
+                robot.end_of_arm.get_joint('wrist_pitch').move_to(joint_state_center['wrist_pitch_pos'])
+                robot.push_command()
+                robot.wait_command()
+                recenter_robot(robot)
 
-                    yaw = joint_state['wrist_yaw_pos']
-                    if abs(yaw) <= 0.1:
-                        yaw_ready = True
-
-                    if pitch_ready and yaw_ready:
-                        ready_to_waggle = True
-
-                    if not ready_to_waggle: 
-                        if abs(pitch - 0.1) > 0.05:
-                            pitch_ready = False
-                            robot.end_of_arm.get_joint('wrist_pitch').move_to(0.1)
-                        if abs(yaw) > 0.05:
-                            yaw_ready = False
-                            robot.end_of_arm.get_joint('wrist_yaw').move_to(0.0)
-
-                    if ready_to_waggle:
-                        waggle_direction = int(waggle_count / 4) % 2
-
-                        if waggle_direction == 0:
-                            robot.end_of_arm.get_joint('wrist_yaw').move_by(0.05, v_des=3.0, a_des=10.0)
-                        else:
-                            robot.end_of_arm.get_joint('wrist_yaw').move_by(-0.05, v_des=3.0, a_des=10.0)
-                        waggle_count = waggle_count + 1
-                    robot.push_command()
-
-                if (waggle_count > 16) or (celebrate_state_count > 100):
-                    # Insert drop-off logic if option_a or option_b is set
-                    if option_a or option_b:
-                        direction = 1.0 if option_a else -1.0
-                        robot.base.translate_by(direction * 0.4)
-                        robot.push_command()
-                        robot.wait_command()
-
-                        robot.lift.move_to(0.7)
-                        robot.push_command()
-                        robot.wait_command()
-
-                        robot.arm.move_to(0.2)
-                        robot.push_command()
-                        robot.wait_command()
-
-                        # Use a fixed hard-coded value known to fully open the gripper
-                    
-                        robot.end_of_arm.move_to('stretch_gripper', 100)
-                        robot.push_command()
-                        robot.wait_command()
-
-                        recenter_robot(robot)
-                        # Move the base back to the original location after drop-off
-                        robot.base.translate_by(-direction * 0.5)
-                        robot.push_command()
-                        robot.wait_command()
-                        controller.stop()
-                        robot.stop()
-                        if not use_yolo:
-                            pipeline.stop()
-                        return
-                    cmd = zero_vel.copy()
-                    behavior = 'reach'
-                    pre_reach = True
+                cmd = zero_vel.copy()
+                behavior = 'reach'
+                pre_reach = True
 
                 if not grasping_the_target:
                     cmd = zero_vel.copy()
@@ -814,18 +761,14 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--remote', action='store_true', help = 'Use this argument when allowing a remote computer to send task-relevant information for visual servoing, such as 3D positions for the fingertips and target objects. Prior to using this option, configure the network with the file yolo_networking.py.')
 
     parser.add_argument('-e', '--exposure', action='store', type=str, default='low', help=f'Set the D405 exposure to {dh.exposure_keywords} or an integer in the range {dh.exposure_range}') 
-    parser.add_argument('-A', action='store_true', help='Drop-off Option A: Move forward 0.5m')
-    parser.add_argument('-B', action='store_true', help='Drop-off Option B: Move backward 0.5m')
 
     args = parser.parse_args()
     use_yolo = args.yolo
     use_remote_computer = args.remote
 
     exposure = args.exposure
-    option_a = args.A
-    option_b = args.B
 
     if not dh.exposure_argument_is_valid(exposure):
         raise argparse.ArgumentTypeError(f'The provided exposure setting, {exposure}, is not a valide keyword, {dh.exposure_keywords}, or is outside of the allowed numeric range, {dh.exposure_range}.')    
     
-    main(use_yolo, use_remote_computer, exposure, option_a, option_b)
+    main(use_yolo, use_remote_computer, exposure)
