@@ -556,7 +556,7 @@ def main(use_yolo, use_remote_computer, exposure):
                 robot.arm.move_to(0.4)
                 robot.push_command()
                 robot.wait_command()
-                robot.end_of_arm.get_joint('wrist_roll').move_to(-1.05)
+                robot.end_of_arm.get_joint('wrist_roll').move_to(-1.745)
                 robot.push_command()
                 robot.wait_command()
                 time.sleep(5)
