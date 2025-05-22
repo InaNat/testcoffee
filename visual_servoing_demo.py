@@ -435,8 +435,12 @@ def main(use_yolo, use_remote_computer, exposure):
                     #print('yolo_results =', yolo_results)
                     fingertips = yolo_results.get('fingertips', None)
                     yolo = yolo_results.get('yolo')
-                    if len(yolo) > 0: 
-                        toy_target = yolo[0]['grasp_center_xyz']
+                    # Select only 'cup' objects with grasp_center_xyz, pick closest
+                    cups = [obj for obj in yolo if obj.get('name', '').lower() == 'cup' and 'grasp_center_xyz' in obj]
+                    if cups:
+                        toy_target = min(cups, key=lambda obj: np.linalg.norm(obj['grasp_center_xyz']))['grasp_center_xyz']
+                    else:
+                        toy_target = None
                 regulate_socket_poll.run_after_polling()
 
             print()
