@@ -309,7 +309,7 @@ def recenter_robot(robot):
     robot.push_command()
     robot.wait_command()
 
-    robot.lift.move_to(0.9)
+    robot.lift.move_to(1.0)
     robot.push_command()
     robot.wait_command()
 
@@ -318,11 +318,20 @@ def recenter_robot(robot):
     robot.wait_command()
         
 
-def main(use_yolo, use_remote_computer, exposure):
+def main(use_yolo, use_remote_computer, exposure, station):
     try:
         
         robot = rb.Robot()
         robot.startup()
+
+        station_offsets = {'A': 0.4, 'B': 0.8, 'C': 1.2}
+        offset = station_offsets.get(station, 0.0)
+
+        # Move from pouring station to pickup station
+        robot.base.translate_by(offset)
+        robot.push_command()
+        robot.wait_command()
+
         recenter_robot(robot)
         controller = nvc.NormalizedVelocityControl(robot)
         controller.reset_base_odometry()
@@ -555,6 +564,11 @@ def main(use_yolo, use_remote_computer, exposure):
                     celebrate_state_count = 0
                 prev_behavior = behavior
 
+                # Return to pouring station
+                robot.base.translate_by(-offset)
+                robot.push_command()
+                robot.wait_command()
+
                 # Drop-off logic: recenter, extend, roll down, wait, roll up, recenter
                 recenter_robot(robot)
                 robot.arm.move_to(0.2)
@@ -764,7 +778,10 @@ if __name__ == '__main__':
 
     parser.add_argument('-r', '--remote', action='store_true', help = 'Use this argument when allowing a remote computer to send task-relevant information for visual servoing, such as 3D positions for the fingertips and target objects. Prior to using this option, configure the network with the file yolo_networking.py.')
 
-    parser.add_argument('-e', '--exposure', action='store', type=str, default='low', help=f'Set the D405 exposure to {dh.exposure_keywords} or an integer in the range {dh.exposure_range}') 
+    parser.add_argument('-e', '--exposure', action='store', type=str, default='low', help=f'Set the D405 exposure to {dh.exposure_keywords} or an integer in the range {dh.exposure_range}')
+
+    parser.add_argument('--station', type=str, choices=['A', 'B', 'C'], required=True,
+                        help='Starting station: A (0.4m), B (0.8m), or C (1.2m)')
 
     args = parser.parse_args()
     use_yolo = args.yolo
@@ -773,6 +790,6 @@ if __name__ == '__main__':
     exposure = args.exposure
 
     if not dh.exposure_argument_is_valid(exposure):
-        raise argparse.ArgumentTypeError(f'The provided exposure setting, {exposure}, is not a valide keyword, {dh.exposure_keywords}, or is outside of the allowed numeric range, {dh.exposure_range}.')    
-    
-    main(use_yolo, use_remote_computer, exposure)
+        raise argparse.ArgumentTypeError(f'The provided exposure setting, {exposure}, is not a valide keyword, {dh.exposure_keywords}, or is outside of the allowed numeric range, {dh.exposure_range}.')
+
+    main(use_yolo, use_remote_computer, exposure, args.station)
