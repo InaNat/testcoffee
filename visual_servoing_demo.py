@@ -309,7 +309,7 @@ def recenter_robot(robot):
     robot.push_command()
     robot.wait_command()
 
-    robot.lift.move_to(joint_state_center['lift_pos'])
+    robot.lift.move_to(0.9)
     robot.push_command()
     robot.wait_command()
 
@@ -557,7 +557,7 @@ def main(use_yolo, use_remote_computer, exposure):
 
                 # Drop-off logic: recenter, extend, roll down, wait, roll up, recenter
                 recenter_robot(robot)
-                robot.arm.move_to(0.4)
+                robot.arm.move_to(0.2)
                 robot.push_command()
                 robot.wait_command()
                 robot.end_of_arm.get_joint('wrist_roll').move_to(-1.745)
