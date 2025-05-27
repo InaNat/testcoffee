@@ -569,11 +569,22 @@ def main(use_yolo, use_remote_computer, exposure, station):
                 robot.push_command()
                 robot.wait_command()
 
-                # Drop-off logic: recenter, extend, roll down, wait, roll up, recenter
+                # Pour sequence
+                recenter_robot(robot)
+                robot.arm.move_to(0.2)
+                robot.push_command()
+                robot.wait_command()
+                robot.end_of_arm.get_joint('wrist_roll').move_to(-1.745)
+                robot.push_command()
+                robot.wait_command()
+                time.sleep(5)
+                robot.end_of_arm.get_joint('wrist_roll').move_to(joint_state_center['wrist_roll_pos'])
+                robot.push_command()
+                robot.wait_command()
                 recenter_robot(robot)
 
-                # Move to trash station to drop the cup
-                robot.base.translate_by(-0.8)
+                # Move to trash station (opposite direction of pickup)
+                robot.base.translate_by(-0.4)
                 robot.push_command()
                 robot.wait_command()
 
@@ -590,19 +601,6 @@ def main(use_yolo, use_remote_computer, exposure, station):
                 robot.push_command()
                 robot.wait_command()
                 robot.base.translate_by(0.8)
-                robot.push_command()
-                robot.wait_command()
-                recenter_robot(robot)
-
-                # Existing: pour sequence
-                robot.arm.move_to(0.2)
-                robot.push_command()
-                robot.wait_command()
-                robot.end_of_arm.get_joint('wrist_roll').move_to(-1.745)
-                robot.push_command()
-                robot.wait_command()
-                time.sleep(5)
-                robot.end_of_arm.get_joint('wrist_roll').move_to(joint_state_center['wrist_roll_pos'])
                 robot.push_command()
                 robot.wait_command()
                 recenter_robot(robot)
