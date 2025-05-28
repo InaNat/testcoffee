@@ -592,7 +592,7 @@ def main(use_yolo, use_remote_computer, exposure, station):
                 robot.arm.move_to(0.2)
                 robot.push_command()
                 robot.wait_command()
-                robot.end_of_arm.get_joint('stretch_gripper').move_to(max_joint_state['gripper_pos'], v_des=gripper_open_speed, a_des=1.0)
+                robot.end_of_arm.get_joint('stretch_gripper').move_to(max_joint_state['gripper_pos'])
                 robot.push_command()
                 robot.wait_command()
 
@@ -785,7 +785,8 @@ def main(use_yolo, use_remote_computer, exposure, station):
     finally:
         controller.stop()
         robot.stop()
-        pipeline.stop()
+        if not use_yolo:
+            pipeline.stop()
 
 
 
