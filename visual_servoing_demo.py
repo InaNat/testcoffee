@@ -592,7 +592,7 @@ def main(use_yolo, use_remote_computer, exposure, station):
                 robot.arm.move_to(0.2)
                 robot.push_command()
                 robot.wait_command()
-                robot.end_of_arm.get_joint('stretch_gripper').move_to(max_joint_state['gripper_pos'])
+                robot.end_of_arm.move_to('stretch_gripper', 100)
                 robot.push_command()
                 robot.wait_command()
 
