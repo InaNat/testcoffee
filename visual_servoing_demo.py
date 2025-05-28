@@ -565,6 +565,9 @@ def main(use_yolo, use_remote_computer, exposure, station):
                 prev_behavior = behavior
 
                 # Return to pouring station
+                robot.base.rotate_to(0.0)
+                robot.push_command()
+                robot.wait_command()
                 robot.base.translate_by(-offset)
                 robot.push_command()
                 robot.wait_command()
@@ -598,6 +601,9 @@ def main(use_yolo, use_remote_computer, exposure, station):
 
                 # Return to pouring station
                 robot.arm.move_to(joint_state_center['arm_pos'])
+                robot.push_command()
+                robot.wait_command()
+                robot.base.rotate_to(0.0)
                 robot.push_command()
                 robot.wait_command()
                 robot.base.translate_by(0.4)
